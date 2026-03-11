@@ -21,7 +21,7 @@
           Entrez votre email pour réinitialiser votre mot de passe
         </p>
       </div>
-      <form action="index.html" class="login-form">
+      <form action="index.php" class="login-form">
         <div class="input-group">
           <label for="email">Email</label>
           <input type="email" id="email" name="email" placeholder="votre@email.com" required />

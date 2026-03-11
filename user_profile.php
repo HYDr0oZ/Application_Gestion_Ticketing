@@ -1,3 +1,32 @@
+<?php
+session_start();
+require_once 'DB.php';
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+  header("Location: index.php");
+  exit();
+}
+
+$user_id = $_SESSION['user_id'];
+$firstname = '';
+$lastname = '';
+$email = '';
+
+try {
+  $stmt = $pdo->prepare("SELECT nom, prenom, email FROM users WHERE id = ?");
+  $stmt->execute([$user_id]);
+  $user = $stmt->fetch();
+
+  if ($user) {
+    $firstname = $user['prenom'];
+    $lastname = $user['nom'];
+    $email = $user['email'];
+  }
+} catch (PDOException $e) {
+  die("Erreur : " . $e->getMessage());
+}
+?>
 <!doctype html>
 <html lang="en">
 
@@ -16,7 +45,7 @@
     <div class="header-content">
       <img src="logo.png" alt="QuickTix Logo" class="logo" />
       <h1 class="header-title">QuickTix</h1>
-      <a href="index.html" class="logout-button">Se déconnecter</a>
+      <a href="logout.php" class="logout-button">Se déconnecter</a>
     </div>
   </header>
 
@@ -29,7 +58,7 @@
         <li>
           <a href="user_profile.php" class="active">Profil Utilisateur</a>
         </li>
-        <li><a href="settings.html">Paramètres</a></li>
+        <li><a href="settings.php">Paramètres</a></li>
       </ul>
     </nav>
 
@@ -42,17 +71,19 @@
           <div class="form-row">
             <div class="input-group form-col">
               <label for="firstname">Prénom</label>
-              <input type="text" id="firstname" name="firstname" value="Jean" required />
+              <input type="text" id="firstname" name="firstname" value="<?php echo htmlspecialchars($firstname); ?>"
+                required />
             </div>
             <div class="input-group form-col">
               <label for="lastname">Nom</label>
-              <input type="text" id="lastname" name="lastname" value="Dupont" required />
+              <input type="text" id="lastname" name="lastname" value="<?php echo htmlspecialchars($lastname); ?>"
+                required />
             </div>
           </div>
 
           <div class="input-group">
             <label for="email">Email</label>
-            <input type="email" id="email" name="email" value="jean.dupont@example.com" required />
+            <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($email); ?>" required />
           </div>
 
           <div class="input-group">

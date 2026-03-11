@@ -1,3 +1,4 @@
+<?php session_start(); ?>
 <!doctype html>
 <html lang="en">
 
@@ -16,7 +17,7 @@
     <div class="header-content">
       <img src="logo.png" alt="QuickTix Logo" class="logo" />
       <h1 class="header-title">QuickTix</h1>
-      <a href="index.html" class="logout-button">Se déconnecter</a>
+      <a href="logout.php" class="logout-button">Se déconnecter</a>
     </div>
   </header>
 

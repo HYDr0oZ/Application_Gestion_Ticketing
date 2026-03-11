@@ -1,3 +1,36 @@
+<?php
+session_start();
+require_once 'DB.php';
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: index.php");
+    exit();
+}
+
+// Handle deletion
+if (isset($_GET['delete_id'])) {
+  $delete_id = $_GET['delete_id'];
+  try {
+      $stmt = $pdo->prepare("DELETE FROM projects WHERE id = ?");
+      $stmt->execute([$delete_id]);
+      header("Location: project_list.php");
+      exit();
+  } catch (PDOException $e) {
+      die("Erreur lors de la suppression : " . $e->getMessage());
+  }
+}
+
+// Fetch projects
+try {
+    $stmt = $pdo->query("SELECT * FROM projects ORDER BY created_at DESC");
+    $projects = $stmt->fetchAll();
+} catch (PDOException $e) {
+    die("Erreur lors de la récupération des projets : " . $e->getMessage());
+}
+?>
+
+
 <!doctype html>
 <html lang="en">
 
@@ -16,7 +49,7 @@
     <div class="header-content">
       <img src="logo.png" alt="QuickTix Logo" class="logo" />
       <h1 class="header-title">QuickTix</h1>
-      <a href="index.html" class="logout-button">Se déconnecter</a>
+      <a href="logout.php" class="logout-button">Se déconnecter</a>
     </div>
   </header>
 
@@ -35,7 +68,7 @@
       <div class="table-container">
         <div class="table-header">
           <h2>Mes Projets</h2>
-          <a href="project_form.html" class="add-ticket-button">Ajouter un projet</a>
+          <a href="project_form.php" class="add-ticket-button">Ajouter un projet</a>
         </div>
         <table class="tickets-table">
           <thead>
@@ -43,71 +76,34 @@
               <th>Projet</th>
               <th>Description</th>
               <th>Statut</th>
-              <th>Temps estimé</th>
+              <th>Deadline</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>Project 1</td>
-              <td>Description du projet 1</td>
-              <td>En cours</td>
-              <td>10h</td>
-              <td>
-                <button class="btn-view-details">Voir détails</button>
-                <a href="project_form.html?id=1" class="action-link">Éditer</a>
-              </td>
-            </tr>
-            <tr>
-              <td>Project 2</td>
-              <td>Description du projet 2</td>
-              <td>En cours</td>
-              <td>20h</td>
-              <td>
-                <button class="btn-view-details">Voir détails</button>
-                <a href="project_form.html?id=2" class="action-link">Éditer</a>
-              </td>
-            </tr>
-            <tr>
-              <td>Project 3</td>
-              <td>Description du projet 3</td>
-              <td>Fermé</td>
-              <td>30h</td>
-              <td>
-                <button class="btn-view-details">Voir détails</button>
-                <a href="project_form.html?id=3" class="action-link">Éditer</a>
-              </td>
-            </tr>
-            <tr>
-              <td>Project 4</td>
-              <td>Description du projet 4</td>
-              <td>Ouvert</td>
-              <td>40h</td>
-              <td>
-                <button class="btn-view-details">Voir détails</button>
-                <a href="project_form.html?id=4" class="action-link">Éditer</a>
-              </td>
-            </tr>
-            <tr>
-              <td>Project 5</td>
-              <td>Description du projet 5</td>
-              <td>Fermé</td>
-              <td>50h</td>
-              <td>
-                <button class="btn-view-details">Voir détails</button>
-                <a href="project_form.html?id=5" class="action-link">Éditer</a>
-              </td>
-            </tr>
-            <tr>
-              <td>Project 6</td>
-              <td>Description du projet 6</td>
-              <td>Ouvert</td>
-              <td>60h</td>
-              <td>
-                <button class="btn-view-details">Voir détails</button>
-                <a href="project_form.html?id=6" class="action-link">Éditer</a>
-              </td>
-            </tr>
+            <?php foreach ($projects as $project): ?>
+              <tr>
+                <td>
+                  <?php echo $project['title']; ?>
+                </td>
+                <td>
+                  <?php echo $project['description']; ?>
+                </td>
+                <td>
+                  <?php echo htmlspecialchars($project['status']); ?>
+                </td>
+                <td>
+                  <?php echo htmlspecialchars($project['end_date'] ?? '-'); ?>
+                </td>
+                <td>
+                  <button class="btn-view-details">Voir détails</button>
+                  <a href="project_form.php?id=<?php echo $project['id']; ?>" class="action-link">Éditer</a>
+                  <a href="project_list.php?delete_id=<?php echo $project['id']; ?>" class="action-link"
+                    style="color: #ff4d4d; margin-left: 10px;"
+                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ?');">Supprimer</a>
+                </td>
+              </tr>
+            <?php endforeach; ?>
           </tbody>
         </table>
       </div>

@@ -1,3 +1,40 @@
+<?php
+session_start();
+require_once 'DB.php';
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: index.php");
+    exit();
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  $title = trim($_POST['project-name']);
+  $description = trim($_POST['description']);
+  $start_date = !empty($_POST['start-date']) ? $_POST['start-date'] : null;
+  $end_date = !empty($_POST['end-date']) ? $_POST['end-date'] : null;
+  $statusRaw = $_POST['status'] ?? 'draft';
+
+  // Map status values to display values
+  $statusMapping = [
+    'draft' => 'Brouillon',
+    'active' => 'Actif',
+    'completed' => 'Terminé',
+    'archived' => 'Archivé'
+  ];
+  $status = $statusMapping[$statusRaw] ?? 'Brouillon';
+
+  try {
+      $stmt = $pdo->prepare("INSERT INTO projects (title, description, start_date, end_date, status) VALUES (?, ?, ?, ?, ?)");
+      $stmt->execute([$title, $description, $start_date, $end_date, $status]);
+      
+      header("Location: project_list.php");
+      exit();
+  } catch (PDOException $e) {
+      die("Erreur lors de la création du projet : " . $e->getMessage());
+  }
+}
+?>
 <!doctype html>
 <html lang="en">
 
@@ -16,7 +53,7 @@
     <div class="header-content">
       <img src="logo.png" alt="QuickTix Logo" class="logo" />
       <h1 class="header-title">QuickTix</h1>
-      <a href="index.html" class="logout-button">Se déconnecter</a>
+      <a href="logout.php" class="logout-button">Se déconnecter</a>
     </div>
   </header>
 
@@ -33,14 +70,14 @@
 
     <main class="dashboard-content">
       <div class="mb-20">
-        <a href="project_list.html" class="add-ticket-button">← Retour à la liste des projets</a>
+        <a href="project_list.php" class="add-ticket-button">← Retour à la liste des projets</a>
       </div>
 
       <div class="login-card content-card-large">
         <div class="login-header">
           <h2>Nouveau Projet</h2>
         </div>
-        <form action="project_list.html" class="login-form">
+        <form action="project_form.php" method="POST" class="login-form">
           <div class="input-group">
             <label for="project-name">Nom du projet</label>
             <input type="text" id="project-name" name="project-name" placeholder="Ex: Refonte Site Web" required />

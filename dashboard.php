@@ -1,3 +1,23 @@
+<?php
+session_start();
+require_once 'DB.php';
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: index.php");
+    exit();
+}
+
+$user_name = $_SESSION['user_name'] ?? 'Utilisateur';
+
+try {
+    $stmt = $pdo->query("SELECT * FROM tickets ORDER BY created_at DESC LIMIT 5"); // Get 5 most recent for dashboard
+    $tickets = $stmt->fetchAll();
+} catch (PDOException $e) {
+    // Graceful degradation
+    $tickets = [];
+}
+?>
 <!doctype html>
 <html lang="en">
 
@@ -16,7 +36,7 @@
     <div class="header-content">
       <img src="logo.png" alt="QuickTix Logo" class="logo" />
       <h1 class="header-title">QuickTix</h1>
-      <a href="index.html" class="logout-button">Se déconnecter</a>
+      <a href="logout.php" class="logout-button">Se déconnecter</a>
     </div>
   </header>
 
@@ -32,6 +52,9 @@
     </nav>
 
     <main class="dashboard-content">
+      <span class="header-title">Bonjour,
+        <?php echo htmlspecialchars($user_name); ?>
+      </span>
       <div class="stats-container">
         <div class="stat-card">
           <span class="stat-label">Tickets Ouverts</span>
@@ -48,7 +71,7 @@
       </div>
       <div class="table-container">
         <div class="table-header">
-          <h2><a href="tickets_list.html">Liste des tickets</a></h2>
+          <h2><a href="tickets_list.php">Liste des tickets</a></h2>
         </div>
         <table class="tickets-table">
           <thead>
@@ -56,46 +79,34 @@
               <th>Titre</th>
               <th>Description</th>
               <th>Statut</th>
+              <th>Durée</th>
+              <th>Temps Estimé</th>
               <th>Prix</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>Ticket 1</td>
-              <td>Description du ticket 1</td>
-              <td>Ouvert</td>
-              <td>10€</td>
-            </tr>
-            <tr>
-              <td>Ticket 2</td>
-              <td>Description du ticket 2</td>
-              <td>En cours</td>
-              <td>20€</td>
-            </tr>
-            <tr>
-              <td>Ticket 3</td>
-              <td>Description du ticket 3</td>
-              <td>Fermé</td>
-              <td>30€</td>
-            </tr>
-            <tr>
-              <td>Ticket 4</td>
-              <td>Description du ticket 4</td>
-              <td>En cours</td>
-              <td>40€</td>
-            </tr>
-            <tr>
-              <td>Ticket 5</td>
-              <td>Description du ticket 5</td>
-              <td>Fermé</td>
-              <td>50€</td>
-            </tr>
-            <tr>
-              <td>Ticket 6</td>
-              <td>Description du ticket 6</td>
-              <td>En cours</td>
-              <td>60€</td>
-            </tr>
+            <?php foreach ($tickets as $ticket): ?>
+              <tr>
+                <td>
+                  <?php echo htmlspecialchars($ticket['title']); ?>
+                </td>
+                <td>
+                  <?php echo htmlspecialchars($ticket['description']); ?>
+                </td>
+                <td>
+                  <?php echo htmlspecialchars($ticket['status']); ?>
+                </td>
+                <td>
+                  <?php echo htmlspecialchars($ticket['duration'] ?? '-'); ?>
+                </td>
+                <td>
+                  <?php echo htmlspecialchars($ticket['estimated_time'] ?? '-'); ?>
+                </td>
+                <td>
+                  <?php echo htmlspecialchars($ticket['price']); ?> €
+                </td>
+              </tr>
+            <?php endforeach; ?>
           </tbody>
         </table>
       </div>
