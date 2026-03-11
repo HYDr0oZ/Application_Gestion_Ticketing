@@ -17,6 +17,14 @@ try {
     // Graceful degradation
     $tickets = [];
 }
+
+try {
+    $stmt = $pdo->query("SELECT * FROM projects ORDER BY created_at DESC LIMIT 5"); // Get 5 most recent for dashboard
+    $projects = $stmt->fetchAll();
+} catch (PDOException $e) {
+    // Graceful degradation
+    $projects = [];
+}
 ?>
 <!doctype html>
 <html lang="en">
@@ -104,6 +112,39 @@ try {
                 </td>
                 <td>
                   <?php echo htmlspecialchars($ticket['price']); ?> €
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-container mt-20">
+        <div class="table-header">
+          <h2><a href="project_list.php">Derniers projets</a></h2>
+        </div>
+        <table class="tickets-table">
+          <thead>
+            <tr>
+              <th>Projet</th>
+              <th>Description</th>
+              <th>Statut</th>
+              <th>Date de fin estimée</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($projects as $project): ?>
+              <tr>
+                <td>
+                  <?php echo htmlspecialchars($project['title']); ?>
+                </td>
+                <td>
+                  <?php echo htmlspecialchars($project['description']); ?>
+                </td>
+                <td>
+                  <?php echo htmlspecialchars($project['status']); ?>
+                </td>
+                <td>
+                  <?php echo htmlspecialchars($project['end_date'] ?? '-'); ?>
                 </td>
               </tr>
             <?php endforeach; ?>
